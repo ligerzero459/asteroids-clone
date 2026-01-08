@@ -11,3 +11,4 @@ wheels/
 
 # Game specific files
 game_state.jsonl
+game_events.jsonl
