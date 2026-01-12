@@ -1,8 +1,10 @@
 import sys
 import pygame
+import pygame.freetype
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+from explosion_projectile import ExplosionProjectile
 from player import Player
 from shot import Shot
 from logger import log_state, log_event
@@ -15,6 +17,7 @@ def main():
   # Game Initialization Start
   pygame.init()
   screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+  score_font = pygame.freetype.Font("./SEGUISB.TTF", 30)
   game_clock = pygame.time.Clock()
   dt = 0
 
@@ -28,9 +31,10 @@ def main():
   Asteroid.containers = (updatable, drawable, asteroids)
   Player.containers = (updatable, drawable)
   Shot.containers = (updatable, drawable, shots)
+  ExplosionProjectile.containers = (updatable, drawable)
 
   # Player Initialization
-  AsteroidField()
+  field = AsteroidField()
   player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
   # GAME LOOP
@@ -40,19 +44,21 @@ def main():
       if event.type == pygame.QUIT:
         return
 
-
     screen.fill("black")
+    score_font.render_to(screen, (3, 3), f"Score: {int(player.score)}", (255, 255, 255))
     updatable.update(dt)
     for asteroid in asteroids:
       if asteroid.collides_with(player):
         log_event("player_hit")
         print("Game over!")
+        print(f"Score: {int(player.score)}")
         sys.exit()
       for shot in shots:
         if asteroid.collides_with(shot):
           log_event("asteroid_shot")
           shot.kill()
-          asteroid.split()
+          player.update_score(asteroid)
+          asteroid.split(field)
           break
 
     for obj in drawable:

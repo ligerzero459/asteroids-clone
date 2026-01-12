@@ -2,6 +2,7 @@ import pygame
 import random
 from circleshape import CircleShape
 from constants import LINE_WIDTH, ASTEROID_MIN_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
+from explosion import Explosion
 from logger import log_event
 
 class Asteroid(CircleShape):
@@ -27,17 +28,15 @@ class Asteroid(CircleShape):
       if self.position.y + self.radius <= 0:
         self.position.y = self.position.y + (self.radius * 2) + SCREEN_HEIGHT
 
-  def split(self):
+  def split(self, field):
     self.kill()
+    field.despawn()
     if self.radius <= ASTEROID_MIN_RADIUS:
+      Explosion(self.position.x, self.position.y).explode()
       return
 
     log_event("asteroid_split")
     new_angle = random.uniform(20, 50)
     new_radius = self.radius - ASTEROID_MIN_RADIUS
-    new_asteroids = [
-      Asteroid(self.position.x, self.position.y, new_radius),
-      Asteroid(self.position.x, self.position.y, new_radius)
-    ]
-    new_asteroids[0].velocity = self.velocity.rotate(new_angle) * 1.2
-    new_asteroids[1].velocity = self.velocity.rotate(-new_angle) * 1.2
+    field.spawn(new_radius, self.position, (self.velocity.rotate(new_angle) * 1.2))
+    field.spawn(new_radius, self.position, (self.velocity.rotate(-new_angle) * 1.2))
